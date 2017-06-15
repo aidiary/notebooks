@@ -10,6 +10,7 @@ from PIL import Image
 import argparse
 import math
 
+
 def generator_model():
     layers = [
         Dense(1024, input_dim=100),
@@ -28,6 +29,7 @@ def generator_model():
     model = Sequential(layers)
     return model
 
+
 def discriminator_model():
     layers = [
         Conv2D(64, (5, 5), padding='same', input_shape=(28, 28, 1)),
@@ -45,12 +47,14 @@ def discriminator_model():
     model = Sequential(layers)
     return model
 
+
 def generator_containing_discriminator(generator, discriminator):
     model = Sequential()
     model.add(generator)
     discriminator.trainable = False
     model.add(discriminator)
     return model
+
 
 def combine_images(generated_images):
     num = generated_images.shape[0]
@@ -65,6 +69,7 @@ def combine_images(generated_images):
         image[i * shape[0]:(i + 1) *shape[0], j * shape[1]:(j + 1) * shape[1]] = img[:, :, 0]
     return image
 
+
 def train(batch_size):
     # load MNIST data
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
@@ -78,39 +83,37 @@ def train(batch_size):
     d_optim = SGD(lr=0.0005, momentum=0.9, nesterov=True)
     g_optim = SGD(lr=0.0005, momentum=0.9, nesterov=True)
 
-    generator.compile(loss='binary_crossentropy', optimizer='SGD')
+#    generator.compile(loss='binary_crossentropy', optimizer='SGD')
     
     # generator: trainable, discriminator: freeze
-    discriminator_on_generator.summary()
     discriminator_on_generator.compile(loss='binary_crossentropy', optimizer=g_optim)
 
     # discriminator: trainable
     discriminator.trainable = True
-    discriminator.summary()
     discriminator.compile(loss='binary_crossentropy', optimizer=d_optim)
 
-    noise = np.zeros((batch_size, 100))
-    
+    d_loss_history = []
+    g_loss_history = []
+
     for epoch in range(20):
         print('epoch:', epoch)
         num_batches = int(X_train.shape[0] / batch_size)
         print('number of batches', num_batches)
         for index in range(num_batches):
-            for i in range(batch_size):
-                noise[i, :] = np.random.uniform(-1, 1, 100)
+            noise = np.array([np.random.uniform(-1, 1, 100) for _ in range(batch_size)])
             image_batch = X_train[index * batch_size:(index + 1) * batch_size]
-
             generated_images = generator.predict(noise, verbose=0)
-            
+
+            # train discriminator
             X = np.concatenate((image_batch, generated_images))
             y = [1] * batch_size + [0] * batch_size
-            
             d_loss = discriminator.train_on_batch(X, y)
-            
-            for i in range(batch_size):
-                noise[i, :] = np.random.uniform(-1, 1, 100)
+            d_loss_history.append(d_loss)
 
+            # train generator
+            noise = np.array([np.random.uniform(-1, 1, 100) for _ in range(batch_size)])
             g_loss = discriminator_on_generator.train_on_batch(noise, [1] * batch_size)
+            g_loss_history.append(g_loss)
 
             print('epoch: %d, batch: %d, g_loss: %f, d_loss: %f' % (epoch, index, g_loss, d_loss))
 
@@ -118,4 +121,15 @@ def train(batch_size):
         image = image * 127.5 + 127.5
         Image.fromarray(image.astype(np.uint8)).save('epoch-%03d.png' % epoch)
 
-train(batch_size=128)
+
+        with open('g_loss_history.log', 'w') as fp:
+            for x in g_loss_history:
+                fp.write('%f\n' % x)
+
+        with open('d_loss_history.log', 'w') as fp:
+            for x in d_loss_history:
+                fp.write('%f\n' % x)
+
+
+if __name__ == '__main__':
+    train(batch_size=100)
