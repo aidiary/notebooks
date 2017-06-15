@@ -89,28 +89,28 @@ def train(batch_size):
     discriminator.summary()
     discriminator.compile(loss='binary_crossentropy', optimizer=d_optim)
 
-    noise = np.zeros((BATCH_SIZE, 100))
+    noise = np.zeros((batch_size, 100))
     
     for epoch in range(20):
         print('epoch:', epoch)
-        num_batches = int(X_train.shape[0] / BATCH_SIZE)
+        num_batches = int(X_train.shape[0] / batch_size)
         print('number of batches', num_batches)
         for index in range(num_batches):
-            for i in range(BATCH_SIZE):
+            for i in range(batch_size):
                 noise[i, :] = np.random.uniform(-1, 1, 100)
-            image_batch = X_train[index * BATCH_SIZE:(index + 1) * BATCH_SIZE]
+            image_batch = X_train[index * batch_size:(index + 1) * batch_size]
 
             generated_images = generator.predict(noise, verbose=0)
             
             X = np.concatenate((image_batch, generated_images))
-            y = [1] * BATCH_SIZE + [0] * BATCH_SIZE
+            y = [1] * batch_size + [0] * batch_size
             
             d_loss = discriminator.train_on_batch(X, y)
             
-            for i in range(BATCH_SIZE):
+            for i in range(batch_size):
                 noise[i, :] = np.random.uniform(-1, 1, 100)
 
-            g_loss = discriminator_on_generator.train_on_batch(noise, [1] * BATCH_SIZE)
+            g_loss = discriminator_on_generator.train_on_batch(noise, [1] * batch_size)
 
             print('epoch: %d, batch: %d, g_loss: %f, d_loss: %f' % (epoch, index, g_loss, d_loss))
 
