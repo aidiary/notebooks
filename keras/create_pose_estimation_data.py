@@ -16,7 +16,7 @@ img_info = coco.loadImgs(img_ids)
 
 # CNNへの入力画像サイズ
 IMG_WIDTH, IMG_HEIGHT = 368, 368
-FM_WIDTH, FM_HEIGHT = 80, 80
+FM_WIDTH, FM_HEIGHT = 46, 46
 SIGMA = 3
 
 def load_image(img_paht):
