@@ -1,4 +1,5 @@
 import numpy as np
+import keras.backend as K
 from keras.models import Model, Sequential
 from keras.layers import Conv2D, MaxPooling2D, Reshape
 from keras.applications.vgg19 import VGG19
@@ -6,7 +7,8 @@ from keras.callbacks import CSVLogger, ModelCheckpoint
 
 IMG_WIDTH, IMG_HEIGHT = 368, 368
 
-vgg19 = VGG19(include_top=False, weights='imagenet', input_shape=(IMG_WIDTH, IMG_HEIGHT, 3))
+# Do not use imagenet weights!!
+vgg19 = VGG19(include_top=False, weights=None, input_shape=(IMG_WIDTH, IMG_HEIGHT, 3))
 
 for i in range(8):
     vgg19.layers.pop()
@@ -33,6 +35,10 @@ data = np.load('data/input_img_data.npy')
 heatmaps = np.load('data/heatmaps.npy')
 filenames = np.load('data/filenames.npy')
 
+# for MemoryError
+for i in range(len(data)):
+    data[i] = data[i] / 256.0 - 0.5
+
 heatmaps = heatmaps.reshape((-1, 46 * 46 * 1))
 
 logger = CSVLogger('train.log')
@@ -51,7 +57,7 @@ def custom_loss(y_true, y_pred):
     y_pred = y_pred * mask
     return K.sum(K.square(y_pred - y_true), axis=[1])
 
-model.compile(loss='mean_squared_error', optimizer='adam')
-#model.compile(loss=custom_loss, optimizer='adam')
-model.fit(data, heatmaps, batch_size=16, epochs=20, verbose=1,
+#model.compile(loss='mean_squared_error', optimizer='adam')
+model.compile(loss=custom_loss, optimizer='adam')
+model.fit(data, heatmaps, batch_size=32, epochs=100, verbose=1,
           callbacks=[logger, checkpoint])
