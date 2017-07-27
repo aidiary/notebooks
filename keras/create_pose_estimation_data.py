@@ -118,7 +118,7 @@ input_img_data = []  # (batch, height, width, channel)
 heatmaps = []        # (batch, height, width, channel=1)
 filenames = []
 
-for info in img_info[:10]:  # 各画像についてループ
+for info in img_info:  # 各画像についてループ
     # パーツ情報（鼻の相対座標）を取得
     persons = get_parts_annotation(info)
     # パーツが1つもない画像は無視
@@ -132,7 +132,7 @@ for info in img_info[:10]:  # 各画像についてループ
     filenames.append(info['file_name'])
 
     # テスト用のプロット
-#     plot_persons(img, persons)
+    # plot_persons(img, persons)
 
     # ヒートマップを作成
     # パーツの座標はCNNの出力するヒートマップサイズに合わせた座標に変換する
@@ -140,7 +140,7 @@ for info in img_info[:10]:  # 各画像についてループ
     heatmaps.append(hm)
 
     # 元画像を縮小した画像に重ね合わせる
-    plot_heatmap(img, hm)
+    # plot_heatmap(img, hm)
 
 input_img_data = np.array(input_img_data)
 heatmaps = np.array(heatmaps)
