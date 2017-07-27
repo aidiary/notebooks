@@ -44,5 +44,14 @@ checkpoint = ModelCheckpoint(
     save_best_only=True,
     mode='auto')
 
+def custom_loss(y_true, y_pred):
+    epsilon = K.variable(value=np.zeros_like(y_true) + 1e-10)
+    mask = K.cast(K.greater(y_true, epsilon), dtype='float32')
+    y_true = y_true * mask
+    y_pred = y_pred * mask
+    return K.sum(K.square(y_pred - y_true), axis=[1])
+
 model.compile(loss='mean_squared_error', optimizer='adam')
-model.fit(data, heatmaps, batch_size=16, epochs=20, verbose=1, callbacks=[logger, checkpoint])
+#model.compile(loss=custom_loss, optimizer='adam')
+model.fit(data, heatmaps, batch_size=16, epochs=20, verbose=1,
+          callbacks=[logger, checkpoint])
