@@ -131,6 +131,8 @@ for info in img_info:  # 各画像についてループ
     input_img_data.append(img)
     filenames.append(info['file_name'])
 
+    print(img_path)
+
     # テスト用のプロット
     # plot_persons(img, persons)
 
