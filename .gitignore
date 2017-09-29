@@ -104,3 +104,4 @@ ENV/
 keras/data/
 pytorch/data/
 data/
+MNIST_data/
