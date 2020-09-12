@@ -106,3 +106,5 @@ pytorch/data/
 data/
 mldata/
 MNIST_data/
+mnist_train/
+runs/
